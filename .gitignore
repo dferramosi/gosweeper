@@ -1,0 +1,8 @@
+gosweeper
+gosweeper.log
+coverage**
+dist
+dist/
+docs/manpages
+docs/shell_completion
+__debug_bin

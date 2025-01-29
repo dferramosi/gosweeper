@@ -1,0 +1,48 @@
+# This is a .goreleaser.yml to manage releases.
+# Documentation at https://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+archives:
+  - formats: ["tar.gz"]
+brews:
+  - tap:
+      owner: dferramosi
+      name: homebrew-tap
+    homepage: "https://github.com/dferramosi/gosweeper"
+    description: Play minesweeper in your terminal
+    install: |
+      bin.install "gosweeper" => "gosweeper"
+release:
+  prerelease: auto
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*bug[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - typo
+      - try
+      - (?i)foo
