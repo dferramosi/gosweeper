@@ -20,6 +20,7 @@ var gameBoard *board.GameBoard
 var ticker *time.Ticker
 var startTime time.Time
 var done chan bool
+var clickFlag bool
 
 func GameTimer() {
 	for {
@@ -57,6 +58,8 @@ func UI(redraw func(), switchToPage func(string), gameEnd func(bool)) *tview.Gri
 	sideBar.SetCellSimple(2, 0, "Mines Left")
 	sideBar.SetCellSimple(2, 2, fmt.Sprint(0))
 	sideBar.SetCellSimple(3, 0, "Time")
+	sideBar.SetCellSimple(4, 0, "Click Mode")
+	sideBar.SetCellSimple(4, 2, "Flag")
 	ticker = time.NewTicker(time.Second)
 	done = make(chan bool)
 	sideBarFrame := tview.NewFrame(sideBar).
@@ -69,6 +72,17 @@ func UI(redraw func(), switchToPage func(string), gameEnd func(bool)) *tview.Gri
 	return uiScreen
 }
 
+func flipClickMode() {
+	if clickFlag {
+		clickFlag = false
+		sideBar.SetCellSimple(4, 2, "Select")
+	} else {
+		clickFlag = true
+		sideBar.SetCellSimple(4, 2, "Flag")
+	}
+	redrawParent()
+}
+
 func GameEnd(win bool) {
 	ticker.Stop()
 	done <- true
@@ -77,8 +91,9 @@ func GameEnd(win bool) {
 
 func Reset() {
 	logger.DebugLogf("Creating new game board with %d rows, %d cols, %d mines", board.BoardRows, board.BoardCols, board.BoardMines)
+	clickFlag = false
 
-	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines)
+	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines, clickHandler)
 	populateTable(gameBoard)
 	sideBar.SetCellSimple(2, 2, fmt.Sprint(gameBoard.Mines))
 	startTime = time.Now()
@@ -93,9 +108,19 @@ func populateTable(gameBoard *board.GameBoard) {
 	for row := 0; row < board.BoardRows; row++ {
 		for col := 0; col < board.BoardCols; col++ {
 			c, _ := gameBoard.GetCell(row, col)
-			tableWidget.SetCell(row, col, tview.NewTableCell(c.StringVal()).SetAlign(tview.AlignCenter))
+			tableWidget.SetCell(row, col, c.TableCell().SetExpansion(1))
 		}
 	}
+}
+
+func clickHandler() bool {
+	row, col := tableWidget.GetSelection()
+	logger.DebugLogf("Clicking Cell(%d,%d)", row, col)
+	if clickFlag {
+		flagHandler()
+		return true
+	}
+	return false
 }
 
 func flagHandler() {
@@ -103,7 +128,8 @@ func flagHandler() {
 	logger.DebugLogf("Flagging Cell(%d,%d)", row, col)
 	newVal := gameBoard.Flag(row, col)
 	logger.DebugLogf("Flagged Cell(%d,%d): %v", row, col, newVal)
-	tableWidget.SetCell(row, col, tview.NewTableCell(fmt.Sprintf("%s", newVal)).SetAlign(tview.AlignCenter))
+	c, _ := gameBoard.GetCell(row, col)
+	tableWidget.SetCell(row, col, c.TableCell())
 	sideBar.SetCellSimple(2, 2, fmt.Sprint(gameBoard.Mines-gameBoard.Flags))
 }
 
@@ -121,7 +147,7 @@ func selectHandler(row, col int) {
 		gameBoard.RevealAdjacent(row, col, []string{}, true)
 		populateTable(gameBoard)
 	} else {
-		tableWidget.SetCell(row, col, tview.NewTableCell(fmt.Sprintf("[%s]", newVal)).SetAlign(tview.AlignCenter))
+		tableWidget.SetCell(row, col, cell.TableCell())
 	}
 	if cell.IsMine {
 		logger.DebugLogf("Game Over")

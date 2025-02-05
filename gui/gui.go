@@ -16,6 +16,7 @@ var activePage string
 // Init starts the gui
 func Init() {
 	app = tview.NewApplication()
+	app.EnableMouse(true)
 	pages = tview.NewPages()
 	redraw := func() {
 		app.Draw()

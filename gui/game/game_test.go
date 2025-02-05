@@ -70,7 +70,7 @@ func TestPopulateTable(t *testing.T) {
 	board.BoardRows = 5
 	board.BoardCols = 5
 	board.BoardMines = 5
-	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines)
+	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines, clickHandler)
 
 	tableWidget = tview.NewTable().SetBorders(true)
 	populateTable(gameBoard)
@@ -87,7 +87,7 @@ func TestFlagHandler(t *testing.T) {
 	board.BoardRows = 5
 	board.BoardCols = 5
 	board.BoardMines = 5
-	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines)
+	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines, clickHandler)
 
 	tableWidget = tview.NewTable().SetBorders(true)
 	sideBar = tview.NewTable().SetBorders(false)
@@ -104,7 +104,7 @@ func TestSelectHandler(t *testing.T) {
 	board.BoardRows = 5
 	board.BoardCols = 5
 	board.BoardMines = 0
-	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines)
+	gameBoard = board.NewBoard(board.BoardRows, board.BoardCols, board.BoardMines, clickHandler)
 	gameBoard.AddMine(5, 5)
 	board.BoardMines = 1
 	gameBoard.PopulateAdjacents()

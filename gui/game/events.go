@@ -15,7 +15,7 @@ func HandleEvents(eventKey *tcell.EventKey, switchToPage func(string)) *tcell.Ev
 
 	switch eventKey.Key() {
 	case tcell.KeyTab:
-		// flag
+		flipClickMode()
 	}
 
 	return eventKey

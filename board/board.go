@@ -5,11 +5,61 @@ import (
 	"gosweeper/logger"
 	"math/rand"
 	"slices"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 )
 
 var BoardRows = 8
 var BoardCols = 16
 var BoardMines = 20
+
+var cellColors = map[string]map[string]tcell.Color{
+	"[ ]": {
+		"text": tcell.ColorGray,
+		"bg":   tcell.ColorBlack,
+	},
+	"[1]": {
+		"text": tcell.ColorBlue,
+		"bg":   tcell.ColorBlack,
+	},
+	"[2]": {
+		"text": tcell.ColorGreen,
+		"bg":   tcell.ColorBlack,
+	},
+	"[3]": {
+		"text": tcell.ColorRed,
+		"bg":   tcell.ColorBlack,
+	},
+	"[4]": {
+		"text": tcell.ColorDarkBlue,
+		"bg":   tcell.ColorBlack,
+	},
+	"[5]": {
+		"text": tcell.ColorMaroon,
+		"bg":   tcell.ColorBlack,
+	},
+	"[6]": {
+		"text": tcell.ColorTeal,
+		"bg":   tcell.ColorBlack,
+	},
+	"[7]": {
+		"text": tcell.ColorPurple,
+		"bg":   tcell.ColorBlack,
+	},
+	"[8]": {
+		"text": tcell.ColorDarkGray,
+		"bg":   tcell.ColorBlack,
+	},
+	"[*]": {
+		"text": tcell.ColorBlack,
+		"bg":   tcell.ColorRed,
+	},
+	"[⚑]": {
+		"text": tcell.ColorBlack,
+		"bg":   tcell.ColorLightGrey,
+	},
+}
 
 type BoardError string
 
@@ -60,6 +110,17 @@ func (c Cell) StringVal() string {
 	return c.String()
 }
 
+func (c Cell) TableCell() *tview.TableCell {
+	s := c.StringVal()
+	nC := tview.NewTableCell(s).
+		SetTextColor(cellColors[s]["text"]).
+		SetBackgroundColor(cellColors[s]["bg"]).
+		SetAlign(tview.AlignCenter)
+	nC.Color = cellColors[s]["text"]
+	nC.BackgroundColor = cellColors[s]["bg"]
+	return nC
+}
+
 func (c *Cell) Reveal() (string, error) {
 	if c.IsRevealed {
 		logger.DebugLogf("Cell is already revealed, with value %s", c.String())
@@ -91,7 +152,7 @@ func (c *Cell) RevealifZero() bool {
 }
 
 // NewBoard creates a new board with the given dimensions and number of mines
-func NewBoard(rows, columns, mines int) *GameBoard {
+func NewBoard(rows, columns, mines int, clickFunc func() bool) *GameBoard {
 	board := &GameBoard{
 		Rows:    rows,
 		Columns: columns,
@@ -103,6 +164,7 @@ func NewBoard(rows, columns, mines int) *GameBoard {
 		board.Cells[i] = make([]*Cell, columns)
 		for j := range board.Cells[i] {
 			board.Cells[i][j] = &Cell{}
+			board.Cells[i][j].TableCell().SetClickedFunc(clickFunc)
 		}
 	}
 	board.populateMines(mines)
